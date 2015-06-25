@@ -1,7 +1,7 @@
 #include "pebble.h"
 
 static Window *window;
-static Layer *s_simple_bg_layer, *s_date_layer, *s_hands_layer;
+static Layer *s_simple_bg_layer, *s_date_layer, *s_hands_layer, *s_battery_layer;
 static TextLayer *s_day_label, *s_num_label;
 
 static char s_num_buffer[4], s_day_buffer[6];
@@ -10,6 +10,27 @@ static void bg_update_proc(Layer *layer, GContext *ctx) {
   printf("bg update");
   graphics_context_set_fill_color(ctx, GColorBlack);
   graphics_fill_rect(ctx, layer_get_bounds(layer), 0, GCornerNone);
+}
+
+static void handle_battery(BatteryChargeState charge_state, GContext *ctx) {
+  GRect bounds = layer_get_bounds(s_battery_layer);
+  int width = bounds.size.w;
+  int height = bounds.size.h;
+  
+  int cp = charge_state.charge_percent;
+  graphics_context_set_stroke_color(ctx, GColorWhite);
+  graphics_context_set_fill_color(ctx, GColorWhite);
+  
+  graphics_draw_rect(ctx, GRect(0, height - 4, width, 4));
+
+  graphics_fill_rect(ctx, GRect(width*(100 - cp)/100, height - 4, width, 4), 0, GCornerNone);
+  
+//   if (charge_state.is_charging) {
+//     snprintf(battery_text, sizeof(battery_text), "charging");
+//   } else {
+//     snprintf(battery_text, sizeof(battery_text), "%d%% charged", charge_state.charge_percent);
+//   }
+//  text_layer_set_text(s_battery_layer, battery_text);
 }
 
 static void hands_update_proc(Layer *layer, GContext *ctx) {
@@ -64,6 +85,7 @@ static void hands_update_proc(Layer *layer, GContext *ctx) {
       graphics_draw_circle(ctx, point, width/13);  
   }
 
+  handle_battery(battery_state_service_peek(), ctx);
 }
 
 static void date_update_proc(Layer *layer, GContext *ctx) {
@@ -97,7 +119,7 @@ static void window_load(Window *window) {
   layer_set_update_proc(s_date_layer, date_update_proc);
   layer_add_child(window_layer, s_date_layer);
   printf("date");
-  s_day_label = text_layer_create(GRect(46, 140, 27, 20));
+  s_day_label = text_layer_create(GRect(46, 130, 27, 20));
   text_layer_set_text(s_day_label, s_day_buffer);
   text_layer_set_background_color(s_day_label, GColorBlack);
   text_layer_set_text_color(s_day_label, GColorWhite);
@@ -105,7 +127,7 @@ static void window_load(Window *window) {
   printf("daylabel");
   layer_add_child(s_date_layer, text_layer_get_layer(s_day_label));
 
-  s_num_label = text_layer_create(GRect(73, 140, 18, 20));
+  s_num_label = text_layer_create(GRect(73, 130, 18, 20));
   text_layer_set_text(s_num_label, s_num_buffer);
   text_layer_set_background_color(s_num_label, GColorBlack);
   text_layer_set_text_color(s_num_label, GColorWhite);
@@ -118,6 +140,9 @@ static void window_load(Window *window) {
     printf("set proc1");
   layer_add_child(window_layer, s_hands_layer);
     printf("set proc2");
+  
+  s_battery_layer = layer_create(bounds);
+  layer_add_child(window_layer, s_battery_layer);
 }
 
 static void window_unload(Window *window) {
