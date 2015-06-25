@@ -24,13 +24,6 @@ static void handle_battery(BatteryChargeState charge_state, GContext *ctx) {
   graphics_draw_rect(ctx, GRect(0, height - 4, width, 4));
 
   graphics_fill_rect(ctx, GRect(width*(100 - cp)/100, height - 4, width, 4), 0, GCornerNone);
-  
-//   if (charge_state.is_charging) {
-//     snprintf(battery_text, sizeof(battery_text), "charging");
-//   } else {
-//     snprintf(battery_text, sizeof(battery_text), "%d%% charged", charge_state.charge_percent);
-//   }
-//  text_layer_set_text(s_battery_layer, battery_text);
 }
 
 static void hands_update_proc(Layer *layer, GContext *ctx) {
@@ -41,7 +34,7 @@ static void hands_update_proc(Layer *layer, GContext *ctx) {
   struct tm *t = localtime(&now);
   
   int n, c, k;
- 
+  
   n = t->tm_sec;
   
   graphics_context_set_stroke_color(ctx, GColorWhite);
